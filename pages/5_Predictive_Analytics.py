@@ -44,16 +44,57 @@ def load_data():
         "data/ISRO mission launches.csv"
     )
 
-    df.columns = df.columns.str.strip()
-
-    df["Launch Date"] = pd.to_datetime(
-        df["Launch Date"],
-        errors="coerce"
+    df.columns = (
+        df.columns
+        .str.strip()
     )
+
+    # Find date column
+    date_col = None
+
+    for col in [
+        "Launch Date",
+        "Launch_Date",
+        "Date"
+    ]:
+
+        if col in df.columns:
+            date_col = col
+            break
+
+    if date_col is None:
+
+        st.error(
+            f"Date column not found.\nAvailable columns: {df.columns.tolist()}"
+        )
+
+        st.stop()
+
+    # Convert dates
+    df[date_col] = pd.to_datetime(
+        df[date_col],
+        errors="coerce",
+        dayfirst=True
+    )
+
+    # Debug
+    valid_dates = df[date_col].notna().sum()
+
+    if valid_dates == 0:
+
+        st.error(
+            "All launch dates failed parsing."
+        )
+
+        st.write(df.head())
+
+        st.stop()
 
     df = df.dropna(
-        subset=["Launch Date"]
+        subset=[date_col]
     )
+
+    df["Launch Date"] = df[date_col]
 
     df["Year"] = (
         df["Launch Date"]
@@ -61,7 +102,6 @@ def load_data():
     )
 
     return df
-
 df = load_data()
 
 # ==========================================================
@@ -122,10 +162,65 @@ total_launches = int(
     launches["Launches"].sum()
 )
 
+# peak_year = int(
+#     launches.loc[
+#         launches["Launches"].idxmax()
+#     ]["Year"]
+# )
+# if launches.empty:
+
+#     st.error(
+#         """
+#         No launch records available.
+
+#         Possible causes:
+#         • Launch Date column not found
+#         • Date parsing failed
+#         • Dataset is empty
+#         """
+#     )
+
+#     st.write("Columns:", df.columns.tolist())
+#     st.write("Rows:", len(df))
+
+#     st.stop()
+
+# peak_launches = int(
+#     launches["Launches"].max()
+# )
+launches = (
+    df.groupby("Year")
+    .size()
+    .reset_index(name="Launches")
+)
+
+# Safety check FIRST
+if launches.empty:
+
+    st.error(
+        """
+        No launch records available.
+
+        Possible causes:
+        • Launch Date column not found
+        • Date parsing failed
+        • Dataset is empty
+        """
+    )
+
+    st.write("Columns:", df.columns.tolist())
+    st.write("Rows:", len(df))
+
+    st.stop()
+
+# Safe calculations
+peak_idx = launches["Launches"].idxmax()
+
 peak_year = int(
     launches.loc[
-        launches["Launches"].idxmax()
-    ]["Year"]
+        peak_idx,
+        "Year"
+    ]
 )
 
 peak_launches = int(
