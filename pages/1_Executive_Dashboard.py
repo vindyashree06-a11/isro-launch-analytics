@@ -63,7 +63,7 @@ df = load_data()
 # ==========================================
 
 st.sidebar.image(
-    "assets/isro_logo.png",
+    "assets/ChatGPT Image Jun 4, 2026, 11_55_06 AM.png",
     width=180
 )
 
