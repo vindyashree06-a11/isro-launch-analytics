@@ -79,20 +79,70 @@ st.markdown(
 
 st.sidebar.title("🔍 Filters")
 
+if (
+    "Year" not in df.columns
+    or df["Year"].isna().all()
+):
+
+    st.error(
+        "Year column is empty."
+    )
+
+    st.stop()
+
+min_year = int(
+    df["Year"]
+    .dropna()
+    .min()
+)
+
+max_year = int(
+    df["Year"]
+    .dropna()
+    .max()
+)
+
 year_range = st.sidebar.slider(
     "Select Year Range",
-    int(df["Year"].min()),
-    int(df["Year"].max()),
+    min_year,
+    max_year,
     (
-        int(df["Year"].min()),
-        int(df["Year"].max())
+        min_year,
+        max_year
     )
 )
 
 filtered_df = df[
-    (df["Year"] >= year_range[0]) &
-    (df["Year"] <= year_range[1])
+    (
+        df["Year"] >= year_range[0]
+    )
+    &
+    (
+        df["Year"] <= year_range[1]
+    )
 ]
+
+if filtered_df.empty:
+
+    st.warning(
+        "No records found for selected range."
+    )
+
+    st.stop()
+# year_range = st.sidebar.slider(
+#     "Select Year Range",
+#     int(df["Year"].min()),
+#     int(df["Year"].max()),
+#     (
+#         int(df["Year"].min()),
+#         int(df["Year"].max())
+#     )
+# )
+
+# filtered_df = df[
+#     (df["Year"] >= year_range[0]) &
+#     (df["Year"] <= year_range[1])
+# ]
 
 # =====================================================
 # KPI SECTION
